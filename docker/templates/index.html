@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoderCo Containers Challenge</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <header>
+      <h1>CoderCo Containers Challenge</h1>
+    </header>
+
+    <main>
+      <section>
+        <h2>Visit Counter</h2>
+        <p>This site has been visited <strong>{{ visits }}</strong> times.</p>
+        <p><a href="{{ url_for('count') }}">Click here to register a new visit</a></p>
+      </section>
+
+      <section>
+        <h2>Utilities</h2>
+        <ul>
+          <li><a href="{{ url_for('health') }}">Health check</a></li>
+          <li><a href="{{ url_for('count') }}">Increment visit count</a></li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>
