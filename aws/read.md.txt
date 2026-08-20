@@ -1,0 +1,73 @@
+A fully custom AWS network built from scratch — covering VPC design, subnetting, routing, NAT/IGW configuration, and security group segmentation between public and private tiers.
+
+Objective
+
+Design and deploy a custom VPC with public and private subnets across multiple Availability Zones, configure routing for internet access (direct for public, NAT-based for private), and launch EC2 instances into each tier with appropriately scoped security groups.
+
+                                Internet
+                                    │
+                             ┌──────┴──────┐
+                             │     IGW     │
+                             └──────┬──────┘
+                                    │
+                    VPC (10.0.0.0/16)
+        ┌───────────────────────────────────────────────┐
+        │                                                 │
+   ┌────┴─────┐                                    ┌──────┴─────┐
+   │  Public   │                                    │  Public    │
+   │ Subnet A  │                                    │ Subnet B   │
+   │ (AZ-1)    │                                    │ (AZ-2)     │
+   │           │                                    │            │
+   │  ┌─────┐  │        Elastic IP                  │            │
+   │  │ EC2 │  │        ┌────────┐                  │            │
+   │  │(Pub)│  │        │  NAT   │                  │            │
+   │  └─────┘  │        │Gateway │                  │            │
+   └────┬──────┘        └───┬────┘                  └────────────┘
+        │                   │
+   Public Route Table   Private Route Table
+   (0.0.0.0/0 → IGW)    (0.0.0.0/0 → NAT GW)
+        │                   │
+   ┌────┴──────┐      ┌─────┴──────┐
+   │  Private   │      │  Private   │
+   │ Subnet A   │      │ Subnet B   │
+   │ (AZ-1)     │      │ (AZ-2)     │
+   │            │      │            │
+   │  ┌──────┐  │      │            │
+   │  │ EC2  │  │      │            │
+   │  │(Priv)│  │      │            │
+   │  └──────┘  │      │            │
+   └────────────┘      └────────────┘
+
+
+
+
+asks
+1. VPC & Subnets
+Custom VPC — 10.0.0.0/16
+2 public subnets (across 2 AZs for high availability)
+2 private subnets (across 2 AZs)
+2. Internet Access
+Internet Gateway (IGW) created and attached to the VPC
+Elastic IP allocated
+NAT Gateway deployed in a public subnet, associated with the Elastic IP
+3. Route Tables
+Public route table — default route (0.0.0.0/0) → Internet Gateway; associated with both public subnets
+Private route table — default route (0.0.0.0/0) → NAT Gateway; associated with both private subnets
+4. EC2 Instances
+Public EC2 — launched in a public subnet with auto-assigned public IP
+Private EC2 — launched in a private subnet with no public IP; outbound internet access only via NAT Gateway
+5. Security Groups
+Public EC2 SG — inbound SSH (22) and HTTP (80) restricted to my IP only
+Private EC2 SG — inbound restricted to internal traffic only (from Public EC2 SG / Bastion SG)
+6. Bonus — Bastion Host
+Bastion Host deployed in the public subnet to enable secure SSH access into the private EC2 instance (no direct public exposure of the private instance)
+Key Concepts Demonstrated
+VPC CIDR planning and subnet segmentation
+Public vs. private subnet design
+Route table association and default routing
+NAT Gateway vs. Internet Gateway use cases
+Security group scoping (least-privilege access)
+Bastion host pattern for secure private-instance access
+Tools
+AWS Console / AWS CLI
+VPC, Subnets, Route Tables, IGW, NAT Gateway, EC2, Security Groups
