@@ -1,0 +1,9 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Terraform lock file
+# Keep .terraform.lock.hcl in Git
