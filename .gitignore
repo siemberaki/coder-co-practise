@@ -1,0 +1,10 @@
+# Terraform downloaded providers and modules
+**/.terraform/*
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Terraform variable files
+*.tfvars
+*.tfvars.json
