@@ -1,0 +1,16 @@
+# Create a script
+echo '#!/bin/bash\necho "Hello DevOps"' > hello.sh
+
+# Make it executable
+chmod +x hello.sh
+
+# Run it
+./hello.sh
+
+# Change ownership
+sudo chown root:root hello.sh
+
+# Understanding permissions
+ls -l hello.sh
+# Output: -rwxr-xr-x 1 root root 32 Nov 29 10:00 hello.sh
+# Breakdown: owner(rwx) group(r-x) others(r-x)
