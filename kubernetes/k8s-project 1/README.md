@@ -15,30 +15,7 @@ not a live deployment status indicator.
 
 ## Architecture
 
-```mermaid
-flowchart TB
-    Engineer["Engineer / AWS credentials"] --> TF["Terraform CLI"]
-    TF --> State["S3 remote state<br/>eks-tfstate-siema / eks-lab"]
-    TF --> Network
-    TF --> EKS["EKS control plane<br/>eks-lab / Kubernetes 1.33"]
-    Engineer -->|"Public API access: allowed CIDR"| EKS
-    subgraph Network["VPC 10.0.0.0/16 / us-east-1 / three AZs"]
-        Public["Three public subnets<br/>Control plane ENIs + single NAT gateway"]
-        Private["Three private subnets<br/>Managed node group: 1–2 nodes"]
-        Private -->|"Outbound internet via NAT"| Public
-    end
-    EKS -->|"Manages workers"| Private
-    TF --> Helm["Helm provider / EKS token authentication"]
-    Helm --> NGINX["NGINX Ingress"]
-    Helm --> Cert["cert-manager"]
-    Helm --> DNS["external-dns"]
-    EKS --> OIDC["OIDC provider / IRSA trust"]
-    OIDC --> Roles["Service account IAM roles"]
-    Cert --> Roles
-    DNS --> Roles
-    Roles -->|"Scoped DNS permissions"| R53["Existing Route 53 hosted zone"]
-    EKS --> Logs["CloudWatch control plane logs<br/>API / audit / authenticator"]
-```
+![EKS architecture: Terraform, networking, private worker nodes, Helm services, IRSA, Route 53 and CloudWatch.](docs/architecture.svg)
 
 The diagram shows resource relationships and access paths. The managed node
 group starts with **one node**, so three subnet AZs do not imply application
@@ -46,17 +23,7 @@ replicas across three AZs. The single NAT gateway is a lab cost tradeoff.
 
 ## How a deployment runs
 
-```mermaid
-flowchart LR
-    Init["terraform init"] --> Validate["terraform validate"]
-    Validate --> Plan["terraform plan"]
-    Plan --> Review{"Review changes"}
-    Review -->|"Revise"| Plan
-    Review -->|"Approve"| Apply["terraform apply"]
-    Apply --> Infra["Networking + EKS + IAM"]
-    Infra --> Services["Helm releases"]
-    Services --> Verify["kubectl: nodes / pods / services"]
-```
+![Deployment workflow from Terraform initialization through review, apply and Kubernetes verification.](docs/deployment.svg)
 
 ## Scope and observability
 
@@ -128,17 +95,7 @@ kubectl get pods --all-namespaces
 
 ## Recover access after your public IP changes
 
-```mermaid
-flowchart TD
-    Failure["Helm refresh: cluster unreachable"] --> IP["Check current public IPv4 and live EKS allowlist"]
-    IP --> Changed{"IP changed?"}
-    Changed -->|"Yes"| Variable["Update my_public_ip_cidr"]
-    Variable --> Target["Plan only the EKS cluster resource"]
-    Target --> Review["Review and apply saved recovery plan"]
-    Review --> Wait["Wait for cluster-active"]
-    Wait --> Full["Run full terraform plan"]
-    Changed -->|"No"| Network["Check VPN / firewall / DNS / routing"]
-```
+![Recovery workflow: check the public IP, update the allowlist, apply a targeted recovery plan and return to a full plan.](docs/access-recovery.svg)
 
 If `terraform plan` fails with `Kubernetes cluster unreachable` while refreshing
 Helm releases, check whether your current public IP differs from the cluster's
