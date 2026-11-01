@@ -6,10 +6,22 @@ module "eks" {
   name               = local.name
   kubernetes_version = "1.33"
 
-  endpoint_public_access = true
-  endpoint_public_access_cidrs = ["204.239.156.252/32"]
+  endpoint_public_access       = true
+  endpoint_public_access_cidrs = [var.my_public_ip_cidr]
 
-  enable_irsa = true
+  enable_irsa                              = true
+  enable_cluster_creator_admin_permissions = true
+
+  addons = {
+    vpc-cni = {
+      before_compute = true
+    }
+    eks-pod-identity-agent = {
+      before_compute = true
+    }
+    kube-proxy = {}
+    coredns    = {}
+  }
 
   vpc_id                   = module.vpc.vpc_id
   subnet_ids               = module.vpc.private_subnets
